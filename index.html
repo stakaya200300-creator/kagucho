@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b5d9b">
+<meta name="mobile-web-app-capable" content="yes">
+<title>家具調</title>
+<style>
+  :root { --main:#2b5d9b; --main2:#3f7cc4; --bg:#f4f6f9; --line:#d5dbe3; --text:#222; --sub:#6b7380; --warn:#c0392b; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--text); font-size:16px; }
+  button { font-family:inherit; cursor:pointer; }
+  .hidden { display:none !important; }
+
+  .bar { position:sticky; top:0; z-index:10; background:var(--main); color:#fff; display:flex; align-items:center; height:52px; padding:0 4px; }
+  .bar .back { background:none; border:0; color:#fff; font-size:24px; width:44px; height:44px; }
+  .bar h1 { flex:1; font-size:17px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar .act { background:none; border:0; color:#fff; font-size:14px; padding:8px 10px; }
+  main { padding:12px 12px 110px; max-width:680px; margin:0 auto; }
+
+  .hero { position:relative; background:linear-gradient(135deg,var(--main),var(--main2)); color:#fff; padding:36px 20px 28px; text-align:center; }
+  .hero h1 { margin:0 0 4px; font-size:26px; letter-spacing:.1em; }
+  .hero p { margin:0; opacity:.85; font-size:13px; }
+  .hero .gear { position:absolute; right:8px; top:8px; background:none; border:0; color:#fff; font-size:22px; opacity:.85; width:44px; height:44px; }
+  .menu { display:grid; gap:12px; margin-top:-16px; }
+  .menu button { display:flex; align-items:center; gap:14px; width:100%; padding:20px 18px; border:0; border-radius:14px; background:#fff;
+                 box-shadow:0 2px 6px rgba(0,0,0,.1); text-align:left; color:var(--text); }
+  .menu .ic { font-size:30px; width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#e8eef7; }
+  .menu .primary { background:var(--main); color:#fff; }
+  .menu .primary .ic { background:rgba(255,255,255,.18); }
+  .menu b { display:block; font-size:18px; }
+  .menu small { opacity:.75; font-size:12px; }
+  .sec-h { font-weight:bold; font-size:14px; color:var(--sub); margin:22px 2px 8px; }
+
+  .card { background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  label.t { display:block; font-size:13px; color:var(--sub); margin:0 0 6px; font-weight:bold; }
+  .gap { margin-top:12px; }
+  input[type=text], input[type=number], input[type=date], input[type=search], input[type=url], input[type=password], textarea {
+    width:100%; padding:11px 10px; border:1px solid var(--line); border-radius:8px; font-size:16px; background:#fff; font-family:inherit; }
+  textarea { min-height:64px; resize:vertical; }
+  .note { font-size:12px; color:var(--sub); margin-top:6px; line-height:1.5; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+  .chip { padding:7px 12px; border:1px solid var(--line); border-radius:20px; background:#fff; font-size:14px; color:var(--text); }
+  .chip.on { background:var(--main); color:#fff; border-color:var(--main); }
+  .dims { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .dims div { position:relative; }
+  .dims span { position:absolute; left:10px; top:11px; color:var(--sub); font-weight:bold; }
+  .dims input { padding-left:30px; }
+  .bigcam { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:18px; border-radius:12px; border:0;
+            background:var(--main); color:#fff; font-weight:bold; font-size:19px; box-shadow:0 2px 6px rgba(43,93,155,.35); }
+  .sublinks { display:flex; justify-content:center; gap:18px; margin-top:10px; font-size:13px; }
+  .sublinks label { color:var(--main); text-decoration:underline; }
+  .check { display:flex; align-items:center; gap:8px; font-size:14px; margin-top:12px; }
+  .check input { width:20px; height:20px; }
+  .shots { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px; }
+  .shots div { position:relative; aspect-ratio:1; }
+  .shots img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+  .shots i { position:absolute; right:3px; bottom:3px; font-style:normal; font-size:11px; background:rgba(0,0,0,.65); color:#fff; border-radius:10px; padding:1px 6px; }
+  .shots .ok i { background:#2e8b57; } .shots .err i { background:var(--warn); }
+  .upstat { font-size:13px; margin-top:10px; padding:8px 10px; border-radius:8px; background:#f0f3f8; color:var(--sub); }
+  .upstat.err { background:#fdecea; color:var(--warn); }
+  .cur-item { font-size:13px; color:var(--main); font-weight:bold; margin-top:10px; }
+
+  .btn { width:100%; padding:14px; border:0; border-radius:10px; background:var(--main); color:#fff; font-size:16px; font-weight:bold; }
+  .btn:disabled { background:#9aaabf; }
+  .btn.sub { background:#fff; color:var(--main); border:1px solid var(--main); }
+  .btn.danger { background:var(--warn); }
+  .btn.gray { background:#fff; color:var(--sub); border:1px solid var(--line); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .footbar { position:fixed; left:0; right:0; bottom:0; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:#fff;
+             box-shadow:0 -2px 8px rgba(0,0,0,.1); z-index:5; }
+  .footbar .in { max-width:680px; margin:0 auto; display:flex; gap:8px; }
+  .footbar .btn { flex:1; }
+
+  .seg { display:grid; grid-template-columns:1fr 1fr; background:#e3e8ef; border-radius:10px; padding:3px; margin-top:10px; }
+  .seg button { border:0; background:none; padding:9px; border-radius:8px; font-size:14px; font-weight:bold; color:var(--sub); }
+  .seg button.on { background:#fff; color:var(--main); box-shadow:0 1px 2px rgba(0,0,0,.1); }
+  .sv { display:flex; gap:12px; background:#fff; border-radius:12px; padding:10px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .sv .cv { width:76px; height:76px; border-radius:10px; background:#e6e9ee center/cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .sv .bd { flex:1; min-width:0; }
+  .sv .nm { font-weight:bold; font-size:17px; }
+  .sv .mt { color:var(--sub); font-size:12px; margin-top:2px; }
+  .sv .mm { font-size:13px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sv .ops { display:flex; gap:6px; margin-top:8px; }
+  .sv .ops button { flex:1; padding:7px 4px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:13px; color:var(--text); }
+  .sv .ops .p { background:var(--main); border-color:var(--main); color:#fff; }
+  .badge { display:inline-block; font-size:11px; padding:1px 7px; border-radius:10px; background:#eee; color:var(--sub); margin-left:6px; vertical-align:2px; font-weight:normal; }
+  .empty { text-align:center; color:var(--sub); padding:30px 0; font-size:14px; }
+
+  .info .nm { font-size:20px; font-weight:bold; }
+  .info .mt { color:var(--sub); font-size:13px; margin-top:4px; }
+  .info .mm { margin-top:8px; font-size:14px; white-space:pre-wrap; }
+  .ledger { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+  .ledger .lk { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+  .ledger .lk button { padding:10px; border-radius:8px; border:1px solid var(--main); background:#fff; color:var(--main); font-weight:bold; font-size:14px; }
+  .ledger .mk { width:100%; padding:11px; border-radius:8px; border:0; background:#e8eef7; color:var(--main); font-weight:bold; font-size:15px; }
+  .room-h { font-weight:bold; margin:18px 0 8px; color:var(--main); border-left:4px solid var(--main); padding-left:8px; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .ph { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .ph .im { width:100%; aspect-ratio:4/3; background:#e6e9ee center/cover; display:flex; align-items:center; justify-content:center; color:var(--sub); font-size:12px; }
+  .ph .tx { padding:6px 8px; font-size:13px; line-height:1.4; }
+  .ph .it { font-weight:bold; }
+  .ph .dm { color:var(--main); font-weight:bold; }
+  .ph .dt { color:var(--sub); font-size:11px; }
+
+  /* アプリ内カメラ */
+  .cam { position:fixed; inset:0; background:#000; z-index:40; display:flex; flex-direction:column; }
+  .cam video { flex:1; width:100%; min-height:0; object-fit:contain; background:#000; }
+  .cam-top { position:absolute; left:0; right:0; top:0; padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+             background:linear-gradient(rgba(0,0,0,.6),transparent); color:#fff; font-size:14px; font-weight:bold; }
+  .cam-top small { display:block; font-weight:normal; opacity:.85; font-size:12px; margin-top:2px; }
+  .cam-bottom { display:flex; align-items:center; justify-content:space-between; padding:16px 28px calc(20px + env(safe-area-inset-bottom)); background:#000; }
+  .shutter { width:76px; height:76px; border-radius:50%; border:5px solid #fff; background:#fff; box-shadow:inset 0 0 0 3px #000; }
+  .shutter:active { transform:scale(.92); }
+  .cam-side { width:64px; height:64px; border-radius:12px; border:1px solid #555; background:#222; color:#fff; font-size:20px; line-height:1.1; }
+  .cam-side small { display:block; font-size:11px; }
+  .cam-last { position:relative; width:64px; height:64px; border-radius:12px; overflow:hidden; background:#222; border:2px solid #fff; }
+  .cam-last img { width:100%; height:100%; object-fit:cover; }
+  .cam-last b { position:absolute; right:2px; top:2px; background:var(--main); color:#fff; border-radius:10px; font-size:12px; padding:0 6px; }
+  .cam-stat { position:absolute; left:50%; transform:translateX(-50%); bottom:calc(120px + env(safe-area-inset-bottom)); background:rgba(0,0,0,.6);
+              color:#fff; font-size:12px; padding:4px 10px; border-radius:12px; white-space:nowrap; }
+  .cam-flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .25s; }
+  .cam-flash.on { opacity:.7; transition:none; }
+
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-end; z-index:20; }
+  .modal .in { background:#fff; width:100%; max-width:680px; margin:0 auto; border-radius:16px 16px 0 0; padding:16px 16px calc(16px + env(safe-area-inset-bottom)); max-height:92vh; overflow:auto; }
+  .modal img { width:100%; border-radius:8px; margin-bottom:10px; min-height:120px; background:#eee; }
+  .modal h2 { margin:0 0 12px; font-size:18px; }
+  #toast { position:fixed; left:50%; bottom:96px; transform:translateX(-50%); background:rgba(0,0,0,.82); color:#fff; white-space:pre-line;
+           padding:10px 16px; border-radius:20px; font-size:14px; display:none; z-index:60; max-width:90%; text-align:center; }
+  #loading { position:fixed; inset:0; background:rgba(255,255,255,.6); display:none; align-items:center; justify-content:center; z-index:50; font-size:14px; color:var(--sub); text-align:center; padding:20px; }
+</style>
+</head>
+<body>
+
+<!-- ================= トップ ================= -->
+<section id="v-home">
+  <div class="hero"><button class="gear" onclick="go('settings')">⚙</button><h1>家具調</h1><p>施主宅 現況・家具調査</p></div>
+  <main>
+    <div class="menu">
+      <button class="primary" onclick="go('new')"><span class="ic">＋</span><span><b>新規家具調 立上げ</b><small>邸名を登録して撮影を開始</small></span></button>
+      <button onclick="go('list')"><span class="ic">🗂</span><span><b>家具調リスト</b><small>進行中の案件を検索・確認</small></span></button>
+    </div>
+    <div class="sec-h">最近の案件</div>
+    <div id="recent"><div class="empty">読み込み中…</div></div>
+  </main>
+</section>
+
+<!-- ================= 設定 ================= -->
+<section id="v-settings" class="hidden">
+  <div class="bar"><button class="back" onclick="back()">‹</button><h1>設定</h1></div>
+  <main>
+    <div class="card">
+      <label class="t">API のURL（Apps Script のウェブアプリURL）</label>
+      <input type="url" id="sApi" placeholder="https://script.google.com/macros/s/…/exec">
+      <label class="t gap">パスコード（setup 実行時のログに表示された8桁）</label>
+      <input type="password" id="sToken" inputmode="numeric">
+      <label class="t gap">担当者名（台帳の「担当」「登録者」に入ります）</label>
+      <input type="text" id="sUser" placeholder="例）瀬名">
+      <div class="note">この設定はこのスマホにだけ保存されます。</div>
+    </div>
+    <button class="btn" onclick="saveSettings()">保存して接続テスト</button>
+  </main>
+</section>
+
+<!-- ================= 新規立上げ ================= -->
+<section id="v-new" class="hidden">
+  <div class="bar"><button class="back" onclick="back()">‹</button><h1>新規家具調 立上げ</h1></div>
+  <main>
+    <div class="card">
+      <label class="t">邸名 <span style="color:var(--warn)">*</span></label>
+      <input type="text" id="nSite" placeholder="例）山田邸">
+      <label class="t gap">調査日</label>
+      <input type="date" id="nDate">
+      <label class="t gap">メモ</label>
+      <textarea id="nMemo" placeholder="例）建替え。既存家具の移設確認"></textarea>
+    </div>
+    <button class="btn" id="nBtn" onclick="createSurvey()">📷 立上げて撮影開始</button>
+  </main>
+</section>
+
+<!-- ================= 撮影 ================= -->
+<section id="v-shot" class="hidden">
+  <div class="bar"><button class="back" onclick="back()">‹</button><h1 id="shotTitle">撮影</h1>
+    <button class="act" onclick="go('detail',cur.id)">写真一覧</button></div>
+  <main>
+    <div class="card">
+      <label class="t">部屋</label>
+      <div class="chips" id="roomChips"></div>
+      <input type="text" id="room" placeholder="部屋名（タップ or 入力）">
+    </div>
+    <div class="card">
+      <label class="t">品目</label>
+      <div class="chips" id="itemChips"></div>
+      <input type="text" id="item" placeholder="品目（タップ or 入力）">
+      <label class="t gap">寸法（mm）</label>
+      <div class="dims">
+        <div><span>W</span><input type="number" inputmode="numeric" id="w"></div>
+        <div><span>D</span><input type="number" inputmode="numeric" id="d"></div>
+        <div><span>H</span><input type="number" inputmode="numeric" id="h"></div>
+      </div>
+      <label class="t gap">メモ</label>
+      <textarea id="memo" placeholder="例）新居の寝室へ移設。上置きあり"></textarea>
+    </div>
+    <div class="card">
+      <button class="bigcam" onclick="openCamera()">📷 カメラを起動して撮影</button>
+      <div class="sublinks">
+        <label for="file">標準カメラで撮る</label>
+        <label for="album">アルバムから選ぶ</label>
+      </div>
+      <input type="file" id="file" accept="image/*" capture="environment" class="hidden">
+      <input type="file" id="album" accept="image/*" multiple class="hidden">
+      <label class="check"><input type="checkbox" id="burn" checked> 写真に品目・寸法を書き込む</label>
+      <div class="cur-item" id="curItem"></div>
+      <div class="shots" id="shots"></div>
+      <div class="upstat" id="upstat"></div>
+    </div>
+  </main>
+  <div class="footbar"><div class="in">
+    <button class="btn" onclick="nextItem()">次の家具へ ➜</button>
+    <button class="btn sub" style="flex:0 0 30%" onclick="go('detail',cur.id)">完了</button>
+  </div></div>
+</section>
+
+<!-- アプリ内カメラ -->
+<div class="cam hidden" id="cam">
+  <video id="video" playsinline muted autoplay></video>
+  <div class="cam-top"><span id="camInfo"></span><small id="camSub"></small></div>
+  <div class="cam-flash" id="flash"></div>
+  <div class="cam-stat" id="camStat"></div>
+  <div class="cam-bottom">
+    <button class="cam-side" onclick="back()">✎<small>入力へ</small></button>
+    <button class="shutter" id="shutterBtn" onclick="shutter()" aria-label="撮影"></button>
+    <div class="cam-last" onclick="back()"><img id="camLast" alt=""><b id="camCount">0</b></div>
+  </div>
+</div>
+
+<!-- ================= 家具調リスト ================= -->
+<section id="v-list" class="hidden">
+  <div class="bar"><button class="back" onclick="back()">‹</button><h1>家具調リスト</h1>
+    <button class="act" onclick="go('new')">＋新規</button></div>
+  <main>
+    <input type="search" id="q" placeholder="🔍 邸名・メモ・品目で検索" oninput="renderList()">
+    <div class="seg">
+      <button id="segA" class="on" onclick="setMode('active')">進行中</button>
+      <button id="segB" onclick="setMode('archived')">アーカイブ</button>
+    </div>
+    <div id="listCount" class="sec-h"></div>
+    <div id="listBody"></div>
+  </main>
+</section>
+
+<!-- ================= 案件詳細 ================= -->
+<section id="v-detail" class="hidden">
+  <div class="bar"><button class="back" onclick="back()">‹</button><h1 id="detTitle">案件</h1>
+    <button class="act" onclick="openSurveyEdit()">編集</button></div>
+  <main>
+    <div class="card info" id="detInfo"></div>
+    <div id="detPhotos"></div>
+  </main>
+  <div class="footbar"><div class="in">
+    <button class="btn" id="detShot" onclick="go('shot',cur.id)">📷 撮影する</button>
+    <button class="btn gray" id="detArc" onclick="toggleArchive(cur)">📦 アーカイブ化</button>
+  </div></div>
+</section>
+
+<!-- 写真の修正 -->
+<div class="modal" id="mPhoto" onclick="if(event.target===this)closeModal(this)">
+  <div class="in">
+    <img id="mImg" alt="">
+    <label class="t">品目</label><input type="text" id="mItem">
+    <label class="t gap">寸法（mm）</label>
+    <div class="dims">
+      <div><span>W</span><input type="number" inputmode="numeric" id="mW"></div>
+      <div><span>D</span><input type="number" inputmode="numeric" id="mD"></div>
+      <div><span>H</span><input type="number" inputmode="numeric" id="mH"></div>
+    </div>
+    <label class="t gap">メモ</label><textarea id="mMemo"></textarea>
+    <div class="row2">
+      <button class="btn" onclick="savePhotoEdit()">修正を保存</button>
+      <button class="btn sub" onclick="window.open(curPhoto.url,'_blank')">ドライブで開く</button>
+    </div>
+    <div class="row2">
+      <button class="btn danger" onclick="removePhoto()">削除</button>
+      <button class="btn gray" onclick="closeModal($('mPhoto'))">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 案件の修正 -->
+<div class="modal" id="mSurvey" onclick="if(event.target===this)closeModal(this)">
+  <div class="in">
+    <h2>案件情報の編集</h2>
+    <label class="t">邸名</label><input type="text" id="eSite">
+    <label class="t gap">調査日</label><input type="date" id="eDate">
+    <label class="t gap">メモ</label><textarea id="eMemo"></textarea>
+    <div class="row2">
+      <button class="btn" onclick="saveSurveyEdit()">保存</button>
+      <button class="btn gray" onclick="closeModal($('mSurvey'))">閉じる</button>
+    </div>
+    <button class="btn sub" style="margin-top:10px" onclick="window.open(cur.folderUrl,'_blank')">📁 ドライブのフォルダを開く</button>
+  </div>
+</div>
+
+<div id="loading"><span id="loadingMsg">読み込み中…</span></div>
+<div id="toast"></div>
+
+<script>
+/* ===== 設定 =====
+   DEFAULT_API_URL に Apps Script のウェブアプリURLを貼っておくと、スマホの設定画面ではパスコードだけ入れればOK */
+const DEFAULT_API_URL = '';
+
+/* よく使う候補（自由に編集してください） */
+const ROOMS = ['LDK','リビング','ダイニング','キッチン','和室','寝室','子供部屋','洋室','玄関','洗面','浴室','トイレ','廊下','納戸','屋外'];
+const ITEMS = ['タンス','食器棚','テレビ台','ソファ','ダイニングテーブル','ベッド','冷蔵庫','洗濯機','仏壇','神棚','ピアノ','本棚','エアコン','照明','カーテン'];
+const MAX = 1920;   // 保存サイズ（長辺px）
+
+let view = 'home';
+let cur = null, curPhoto = null, surveys = [], mode = 'active';
+
+/* ================= 共通 ================= */
+function $(id){ return document.getElementById(id); }
+function ls(k, v){ try { if (v !== undefined) localStorage.setItem('kgc_'+k, v); return localStorage.getItem('kgc_'+k) || ''; } catch(e){ return ''; } }
+const CFG = { get api(){ return ls('api') || DEFAULT_API_URL; }, get token(){ return ls('token'); }, get user(){ return ls('user'); } };
+function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', ms||2200); }
+function loading(on, msg){ $('loadingMsg').textContent = msg || '読み込み中…'; $('loading').style.display = on ? 'flex' : 'none'; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dimText(o){ return [['W',o.w],['D',o.d],['H',o.h]].filter(x=>x[1]!==''&&x[1]!=null).map(x=>x[0]+x[1]).join(' '); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function closeModal(el){ el.style.display='none'; }
+function norm(s){ return String(s||'').normalize('NFKC').toLowerCase().replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60)); }
+
+/** Apps Script API を呼ぶ */
+async function run(fn, ...args){
+  if (!CFG.api || !CFG.token) throw new Error('設定（URL・パスコード）が未入力です');
+  let res;
+  try { res = await fetch(CFG.api, { method:'POST', body: JSON.stringify({ token:CFG.token, fn, args }) }); }
+  catch(e){ throw new Error('通信できません（電波を確認してください）'); }
+  let j;
+  try { j = await res.json(); } catch(e){ throw new Error('APIに接続できません（URL・デプロイ設定を確認）'); }
+  if (!j.ok) throw new Error(j.error || 'エラー');
+  return j.result;
+}
+
+/* ================= 画面遷移（#/画面/ID　再読み込みしても同じ画面に戻る） ================= */
+const PARENT = {home:'home', settings:'home', new:'home', list:'home', detail:'list', shot:'detail'};
+function hashOf(v, id, sub){ return '#/'+v+(id?'/'+id:'')+(sub?'/'+sub:''); }
+function depth(){ return (history.state && history.state.n) || 0; }
+function go(v, id, sub){ history.pushState({n:depth()+1}, '', hashOf(v,id,sub)); route(); }
+function replaceTo(v, id, sub){ history.replaceState({n:depth()}, '', hashOf(v,id,sub)); route(); }
+function back(){
+  if (depth()>0) history.back();
+  else if (stream || !$('cam').classList.contains('hidden')) replaceTo('shot', cur && cur.id);   // カメラだけ閉じる
+  else replaceTo(PARENT[view]||'home', cur && cur.id);
+}
+window.addEventListener('popstate', route);
+function route(){
+  const [v, id, sub] = (location.hash || '#/home').replace(/^#\/?/,'').split('/');
+  show(v || 'home', id || '', sub || '');
+}
+
+function show(v, id, sub){
+  if (!(v==='shot' && sub==='cam')) stopCamera();
+  if (!CFG.api || !CFG.token) v = 'settings';
+  view = v;
+  ['home','settings','new','shot','list','detail'].forEach(n => $('v-'+n).classList.toggle('hidden', n!==v));
+  window.scrollTo(0,0);
+  if (v==='home')     loadHome();
+  if (v==='settings') { $('sApi').value=CFG.api; $('sToken').value=CFG.token; $('sUser').value=CFG.user; }
+  if (v==='new')      { $('nSite').value=''; $('nMemo').value=''; $('nDate').value=today(); setTimeout(()=>$('nSite').focus(),100); }
+  if (v==='shot')     openShot(id, sub==='cam');
+  if (v==='list')     loadList();
+  if (v==='detail')   loadDetail(id);
+}
+
+window.addEventListener('load', () => {
+  makeChips('roomChips', ROOMS, 'room');
+  makeChips('itemChips', ITEMS, 'item');
+  $('file').onchange = $('album').onchange = onPick;
+  FORM_IDS.forEach(id => $(id).addEventListener('input', () => { saveFormDraft(); renderCurItem(); }));
+  $('burn').checked = ls('burn') !== '0';
+  $('burn').onchange = () => ls('burn', $('burn').checked ? '1' : '0');
+  window.addEventListener('online', pump);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pump(); });
+  if (!history.state) history.replaceState({n:0}, '', location.hash || '#/home');
+  route();
+  restoreQueue();   // 前回送れなかった写真があれば再送
+});
+
+/* ================= 設定 ================= */
+async function saveSettings(){
+  ls('api', $('sApi').value.trim()); ls('token', $('sToken').value.trim()); ls('user', $('sUser').value.trim());
+  loading(true, '接続テスト中…');
+  try { await run('ping'); toast('✅ 接続できました'); replaceTo('home'); pump(); }
+  catch(e){ toast('⚠ '+e.message, 5000); }
+  finally { loading(false); }
+}
+
+/* ================= トップ ================= */
+async function loadHome(){
+  try {
+    surveys = await run('getSurveys','active');
+    $('recent').innerHTML = surveys.length ? surveys.slice(0,3).map(svCard).join('')
+      : '<div class="empty">進行中の案件はありません<br>「新規家具調 立上げ」から始めましょう</div>';
+  } catch(e){ $('recent').innerHTML='<div class="empty">読み込みエラー: '+esc(e.message)+'</div>'; }
+}
+
+/* ================= 新規立上げ ================= */
+async function createSurvey(){
+  const site=$('nSite').value.trim();
+  if (!site) return toast('邸名を入力してください');
+  const btn=$('nBtn'); btn.disabled=true;
+  try {
+    const r = await run('createSurvey', {site, date:$('nDate').value, memo:$('nMemo').value.trim(), user:CFG.user});
+    toast('✅ 「'+site+'」を立ち上げました');
+    cur = null;
+    replaceTo('shot', r.id);   // 戻ると新規画面ではなくトップへ
+  } catch(e){ toast('エラー: '+e.message, 5000); }
+  finally { btn.disabled=false; }
+}
+
+/* ================= 撮影 =================
+   アプリ内カメラで撮る → その場で縮小 → スマホ内に一時保管 → すぐドライブへ送信。
+   カメラアプリに切り替わらないので画面が落ちず、枚数制限なく連続で撮れる。 */
+const FORM_IDS = ['room','item','w','d','h','memo'];
+let queue = [];      // 送信待ち
+let shots = [];      // 今の家具で撮った写真（表示用）
+let shotSid = null, uploading = false, retryTimer = null, lastErr = '';
+let stream = null;
+
+const DB = (() => {
+  let p = null;
+  function open(){
+    return p || (p = new Promise((ok,ng) => {
+      const r = indexedDB.open('kaguchou', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('drafts', {keyPath:'key'});
+      r.onsuccess = () => ok(r.result); r.onerror = () => ng(r.error);
+    }));
+  }
+  async function tx(mode, fn){
+    const db = await open();
+    return new Promise((ok,ng) => {
+      const t = db.transaction('drafts', mode); const req = fn(t.objectStore('drafts'));
+      t.oncomplete = () => ok(req && req.result); t.onerror = () => ng(t.error);
+    });
+  }
+  const safe = f => async (...a) => { try { return await f(...a); } catch(e){ return null; } };
+  return { put: safe(o=>tx('readwrite',s=>s.put(o))), del: safe(k=>tx('readwrite',s=>s.delete(k))),
+           get: safe(k=>tx('readonly',s=>s.get(k))), all: safe(()=>tx('readonly',s=>s.getAll())) };
+})();
+
+async function openShot(id, withCam){
+  if (!cur || cur.id!==id) {
+    loading(true);
+    try { cur = await run('getSurvey', id); } catch(e){ loading(false); toast('エラー: '+e.message,5000); return; }
+    loading(false);
+  }
+  $('shotTitle').textContent = '📷 ' + cur.site;
+  if (shotSid !== cur.id) {   // 別の案件なら表示をリセットし、入力途中の内容を復元
+    shotSid = cur.id; shots = [];
+    const f = await DB.get('form_'+cur.id);
+    FORM_IDS.forEach(k => $(k).value = (f && f[k]) || '');
+    syncChips('roomChips','room'); syncChips('itemChips','item');
+  }
+  renderCurItem(); renderShots(); renderStatus();
+  if (withCam) startCamera();
+}
+function makeChips(boxId, list, inputId){
+  const box=$(boxId);
+  box.innerHTML = list.map(v=>'<button type="button" class="chip">'+esc(v)+'</button>').join('');
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ $(inputId).value=b.textContent; syncChips(boxId,inputId); saveFormDraft(); renderCurItem(); });
+  $(inputId).addEventListener('input',()=>syncChips(boxId,inputId));
+}
+function syncChips(boxId,inputId){ $(boxId).querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', b.textContent===$(inputId).value)); }
+function currentInfo(){
+  return { room:$('room').value.trim(), item:$('item').value.trim(), w:$('w').value, d:$('d').value, h:$('h').value, memo:$('memo').value.trim() };
+}
+function saveFormDraft(){
+  if (!cur || view!=='shot') return;
+  const o = {key:'form_'+cur.id}; FORM_IDS.forEach(id=>o[id]=$(id).value);
+  DB.put(o);
+}
+function infoText(i){ return [i.room, i.item, dimText(i)].filter(Boolean).join(' / '); }
+function renderCurItem(){ const t=infoText(currentInfo()); $('curItem').textContent = t ? '今の家具：'+t : ''; }
+
+/* ---------- アプリ内カメラ ---------- */
+function openCamera(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('このブラウザはアプリ内カメラに未対応です。標準カメラを使います'); return $('file').click(); }
+  go('shot', cur.id, 'cam');   // スマホの「戻る」でカメラを閉じられるように
+}
+async function startCamera(){
+  if (stream) return;
+  $('cam').classList.remove('hidden');
+  const i=currentInfo();
+  $('camInfo').textContent = cur.site + (i.room ? '　'+i.room : '');
+  $('camSub').textContent = [i.item, dimText(i)].filter(Boolean).join('  ') || '（品目未入力）';
+  renderCam();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio:false,
+      video:{ facingMode:{ideal:'environment'}, width:{ideal:2560}, height:{ideal:1920} } });
+    const v=$('video'); v.srcObject=stream; await v.play();
+  } catch(e){
+    stopCamera(); back();
+    toast('カメラを起動できません（'+(e.name||e.message)+'）\nカメラの使用を許可するか、「標準カメラで撮る」を使ってください', 6000);
+  }
+}
+function stopCamera(){
+  if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  const v=$('video'); if (v) v.srcObject=null;
+  $('cam').classList.add('hidden');
+}
+async function shutter(){
+  const v=$('video');
+  if (!v.videoWidth) return;
+  const f=$('flash'); f.classList.add('on'); setTimeout(()=>f.classList.remove('on'), 60);
+  if (navigator.vibrate) navigator.vibrate(25);
+  const s=Math.min(1, MAX/Math.max(v.videoWidth, v.videoHeight));
+  const cv=document.createElement('canvas'); cv.width=Math.round(v.videoWidth*s); cv.height=Math.round(v.videoHeight*s);
+  cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+  await addShot(cv, currentInfo(), $('burn').checked);
+}
+function renderCam(){
+  const last = shots[shots.length-1];
+  $('camLast').src = last ? last.thumb : '';
+  $('camCount').textContent = shots.length;
+  const n=queue.length;
+  $('camStat').textContent = n ? (lastErr ? '⚠ 未送信 '+n+'枚（自動で再送）' : '⏫ 送信中 '+n+'枚') : (shots.length ? '✅ '+shots.length+'枚 保存済み' : 'シャッターを押すと自動で保存');
+}
+
+/* ---------- 標準カメラ・アルバム ---------- */
+function loadImage(src){ return new Promise((ok,ng)=>{ const img=new Image(); img.onload=()=>ok(img); img.onerror=ng; img.src=src; }); }
+async function fileToCanvas(file){
+  const url = URL.createObjectURL(file);
+  let img = null;
+  try {
+    img = await loadImage(url);
+    const s=Math.min(1, MAX/Math.max(img.naturalWidth, img.naturalHeight));
+    const cv=document.createElement('canvas'); cv.width=Math.round(img.naturalWidth*s); cv.height=Math.round(img.naturalHeight*s);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    return cv;
+  } finally { if (img) img.src=''; URL.revokeObjectURL(url); }
+}
+async function onPick(e){
+  const files=[].slice.call(e.target.files); e.target.value='';
+  if (!files.length || !cur) return;
+  const info=currentInfo(), burn=$('burn').checked;
+  for (let i=0;i<files.length;i++) {
+    $('upstat').textContent = '写真を処理中… '+(i+1)+'/'+files.length;
+    try { const cv = await fileToCanvas(files[i]); files[i]=null; await addShot(cv, info, burn); }
+    catch(err){ toast('写真の読み込みに失敗しました'); }
+  }
+  renderStatus();
+}
+
+/* ---------- 共通：書き込み → 一時保管 → 送信 ---------- */
+async function addShot(cv, info, burn){
+  const w=cv.width, h=cv.height, c=cv.getContext('2d');
+  if (burn) {
+    const lines = [ [info.item, dimText(info)].filter(Boolean).join('  '), info.memo,
+                    [cur.site, info.room, new Date().toLocaleDateString('ja-JP')].filter(Boolean).join(' / ') ].filter(Boolean);
+    const fs=Math.round(Math.min(w,h)*0.045), pad=Math.round(fs*0.5), lh=Math.round(fs*1.3), bandH=pad*2+lh*lines.length;
+    c.fillStyle='rgba(0,0,0,0.55)'; c.fillRect(0,h-bandH,w,bandH);
+    c.fillStyle='#fff'; c.textBaseline='top';
+    lines.forEach((t,i)=>{
+      const last = i===lines.length-1;
+      c.font=(i===0&&!last?'bold ':'')+(last?Math.round(fs*0.75):fs)+'px sans-serif';
+      c.fillText(t, pad, h-bandH+pad+lh*i, w-pad*2);
+    });
+  }
+  const dataUrl = cv.toDataURL('image/jpeg', 0.85);
+  const ts=Math.min(1, 200/Math.max(w,h)), tc=document.createElement('canvas');
+  tc.width=Math.round(w*ts); tc.height=Math.round(h*ts);
+  tc.getContext('2d').drawImage(cv,0,0,tc.width,tc.height);
+  const thumb = tc.toDataURL('image/jpeg', 0.6);
+  cv.width=cv.height=0; tc.width=tc.height=0;   // メモリ解放
+
+  const rec = { key:'p_'+cur.id+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), sid:cur.id, t:Date.now(),
+                dataUrl, thumb, info, user:CFG.user };
+  await DB.put(rec);                // 先にスマホ内へ一時保管（落ちても消えない）
+  queue.push(rec);
+  shots.push({ key:rec.key, thumb, state:'wait' });
+  renderShots(); pump();
+}
+
+/** 送信キューを1枚ずつ送る（失敗したら10秒後に自動で再送） */
+async function pump(){
+  if (uploading || !queue.length) { renderStatus(); return; }
+  uploading = true; clearTimeout(retryTimer);
+  try {
+    while (queue.length) {
+      const rec = queue[0];
+      setShot(rec.key, 'up'); renderStatus();
+      try {
+        await run('savePhoto', Object.assign({}, rec.info, { surveyId:rec.sid, dataUrl:rec.dataUrl, key:rec.key, user:rec.user }));
+      } catch(e) {
+        lastErr = e.message || '通信エラー';
+        setShot(rec.key, 'err');
+        if (/パスコード|設定|不明/.test(lastErr)) toast('⚠ '+lastErr, 5000);
+        retryTimer = setTimeout(pump, 10000);
+        break;
+      }
+      queue.shift(); await DB.del(rec.key);
+      lastErr=''; setShot(rec.key, 'ok');
+    }
+  } finally { uploading = false; renderStatus(); }
+}
+function setShot(key, state){ const s=shots.find(x=>x.key===key); if (s) { s.state=state; renderShots(); } }
+function renderShots(){
+  const mark = {wait:'待機', up:'送信中', ok:'✓', err:'再送待ち'};
+  $('shots').innerHTML = shots.map(s=>'<div class="'+s.state+'"><img src="'+s.thumb+'"><i>'+mark[s.state]+'</i></div>').join('');
+  renderCam();
+}
+function renderStatus(){
+  const el=$('upstat'), n=queue.length;
+  el.classList.toggle('err', !!lastErr && n>0);
+  if (n && lastErr) el.textContent = '⚠ 送信できていない写真 '+n+'枚（電波が戻ると自動で再送します）';
+  else if (n)       el.textContent = '⏫ 送信中… 残り '+n+'枚';
+  else if (shots.length) el.textContent = '✅ この家具の写真 '+shots.filter(s=>s.state==='ok').length+'枚 保存済み';
+  else              el.textContent = '品目・寸法を入れてから撮影 → 自動でドライブに保存されます';
+  renderCam();
+}
+async function restoreQueue(){
+  if (!CFG.api || !CFG.token) return;
+  const ps = ((await DB.all()) || []).filter(r=>r.dataUrl).sort((a,b)=>a.t-b.t);
+  if (!ps.length) return;
+  const known = new Set(queue.map(r=>r.key));
+  ps.forEach(r => { if (!known.has(r.key)) queue.push(r); });
+  toast('未送信の写真 '+ps.length+'枚 を送信します', 3500);
+  pump();
+}
+function nextItem(){
+  shots = [];
+  ['item','w','d','h','memo'].forEach(id=>$(id).value=''); syncChips('itemChips','item');
+  saveFormDraft(); renderCurItem(); renderShots(); renderStatus();
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (queue.length) toast('前の家具の写真は裏で送信を続けます');
+}
+
+/* ================= 家具調リスト ================= */
+function setMode(m){
+  mode=m;
+  $('segA').classList.toggle('on', m==='active'); $('segB').classList.toggle('on', m==='archived');
+  loadList();
+}
+async function loadList(){
+  $('listBody').innerHTML='<div class="empty">読み込み中…</div>'; $('listCount').textContent='';
+  try { surveys = await run('getSurveys', mode); renderList(); }
+  catch(e){ $('listBody').innerHTML='<div class="empty">読み込みエラー: '+esc(e.message)+'</div>'; }
+}
+function renderList(){
+  const words = norm($('q').value).split(/\s+/).filter(Boolean);
+  const hit = surveys.filter(s => { const t=norm([s.site,s.memo,s.date,s.owner,s.words].join(' ')); return words.every(w=>t.includes(w)); });
+  $('listCount').textContent = (mode==='active'?'進行中':'アーカイブ')+' '+hit.length+'件';
+  $('listBody').innerHTML = hit.length ? hit.map(svCard).join('')
+    : '<div class="empty">'+(words.length?'該当する案件がありません':(mode==='active'?'進行中の案件はありません':'アーカイブはありません'))+'</div>';
+}
+function svCard(s){
+  const arc = s.status==='アーカイブ';
+  return '<div class="sv" onclick="go(\'detail\',\''+s.id+'\')">'+
+    '<div class="cv" style="'+(s.cover?'background-image:url('+s.cover+')':'')+'">'+(s.cover?'':'🛋')+'</div>'+
+    '<div class="bd"><div class="nm">'+esc(s.site)+(arc?'<span class="badge">アーカイブ</span>':'')+'</div>'+
+    '<div class="mt">調査日 '+esc(s.date)+'　📷 '+s.count+'枚</div>'+
+    (s.memo?'<div class="mm">'+esc(s.memo)+'</div>':'')+
+    '<div class="ops" onclick="event.stopPropagation()">'+
+      (arc ? '<button onclick="toggleArchive(surveys.find(x=>x.id===\''+s.id+'\'))">↩ 進行中に戻す</button>'
+           : '<button class="p" onclick="go(\'shot\',\''+s.id+'\')">📷 撮影</button>'+
+             '<button onclick="toggleArchive(surveys.find(x=>x.id===\''+s.id+'\'))">📦 アーカイブ化</button>')+
+    '</div></div></div>';
+}
+async function toggleArchive(s){
+  if (!s) return;
+  const on = s.status!=='アーカイブ';
+  if (on && !confirm('「'+s.site+'」をアーカイブ化しますか？\nリストに表示されなくなります（アーカイブタブから戻せます）')) return;
+  loading(true);
+  try {
+    await run('setArchived', s.id, on);
+    toast(on ? '📦 アーカイブ化しました' : '↩ 進行中に戻しました');
+    if (cur && cur.id===s.id) cur.status = on ? 'アーカイブ' : '進行中';
+    if (view==='detail' && on) back(); else route();
+  } catch(e){ toast('エラー: '+e.message,5000); }
+  finally { loading(false); }
+}
+
+/* ================= 案件詳細 ================= */
+async function loadDetail(id){
+  $('detInfo').innerHTML='<div class="empty">読み込み中…</div>'; $('detPhotos').innerHTML='';
+  try { cur = await run('getSurvey', id); } catch(e){ $('detInfo').innerHTML='<div class="empty">エラー: '+esc(e.message)+'</div>'; return; }
+  const arc = cur.status==='アーカイブ';
+  $('detTitle').textContent = cur.site;
+  $('detInfo').innerHTML = '<div class="nm">'+esc(cur.site)+(arc?'<span class="badge">アーカイブ</span>':'')+'</div>'+
+    '<div class="mt">調査日 '+esc(cur.date)+'　📷 '+cur.photos.length+'枚　更新 '+esc(cur.updated)+'</div>'+
+    (cur.memo?'<div class="mm">'+esc(cur.memo)+'</div>':'')+
+    '<div class="ledger">'+
+      (cur.ledgerUrl ? '<div class="lk"><button onclick="window.open(cur.ledgerUrl,\'_blank\')">📋 台帳を開く</button>'+
+                       '<button onclick="window.open(cur.pdfUrl,\'_blank\')">📄 PDFを開く</button></div>' : '')+
+      (cur.photos.length ? '<button class="mk" onclick="makeLedger()">'+(cur.ledgerUrl?'🔄 台帳を作り直す':'📋 家具調査台帳を作成')+'</button>' : '')+
+    '</div>';
+  $('detShot').classList.toggle('hidden', arc);
+  $('detArc').textContent = arc ? '↩ 進行中に戻す' : '📦 アーカイブ化';
+  if (!cur.photos.length){ $('detPhotos').innerHTML='<div class="empty">まだ写真がありません</div>'; return; }
+  const groups={};
+  cur.photos.forEach((p,i)=>(groups[p.room]=groups[p.room]||[]).push(i));
+  $('detPhotos').innerHTML = Object.keys(groups).map(room=>
+    '<div class="room-h">'+esc(room)+'（'+groups[room].length+'）</div><div class="grid">'+
+    groups[room].map(i=>{ const p=cur.photos[i];
+      return '<div class="ph" onclick="openPhoto('+i+')"><div class="im" style="'+(p.thumb?'background-image:url('+p.thumb+')':'')+'">'+(p.thumb?'':'処理中')+'</div>'+
+        '<div class="tx"><div class="it">'+esc(p.item||'（品目なし）')+'</div>'+
+        (dimText(p)?'<div class="dm">'+esc(dimText(p))+'</div>':'')+
+        (p.memo?'<div>'+esc(p.memo)+'</div>':'')+'<div class="dt">'+esc(p.date)+'</div></div></div>';
+    }).join('')+'</div>').join('');
+}
+async function makeLedger(){
+  if (cur.ledgerUrl && !confirm('台帳を作り直しますか？（前の台帳はゴミ箱へ移動します）')) return;
+  loading(true, '台帳を作成中…\n（写真が多いと1分ほどかかります）');
+  try { await run('createLedger', cur.id); toast('📋 台帳を作成しました'); await loadDetail(cur.id); }
+  catch(e){ toast('エラー: '+e.message, 6000); }
+  finally { loading(false); }
+}
+function openSurveyEdit(){
+  if (!cur) return;
+  $('eSite').value=cur.site; $('eDate').value=cur.dateIso; $('eMemo').value=cur.memo;
+  $('mSurvey').style.display='flex';
+}
+async function saveSurveyEdit(){
+  try {
+    await run('updateSurvey', cur.id, {site:$('eSite').value.trim(), date:$('eDate').value, memo:$('eMemo').value.trim()});
+    toast('保存しました'); closeModal($('mSurvey')); loadDetail(cur.id);
+  } catch(e){ toast('エラー: '+e.message,5000); }
+}
+async function openPhoto(i){
+  curPhoto=cur.photos[i];
+  $('mImg').src=curPhoto.thumb || '';
+  $('mItem').value=curPhoto.item||''; $('mW').value=curPhoto.w; $('mD').value=curPhoto.d; $('mH').value=curPhoto.h; $('mMemo').value=curPhoto.memo||'';
+  $('mPhoto').style.display='flex';
+  const id=curPhoto.id;
+  try { const big = await run('getImage', id, 1200); if (big && curPhoto && curPhoto.id===id) $('mImg').src=big; } catch(e){}
+}
+async function savePhotoEdit(){
+  try {
+    await run('updatePhoto', curPhoto.id, {item:$('mItem').value.trim(), w:$('mW').value, d:$('mD').value, h:$('mH').value, memo:$('mMemo').value.trim()});
+    toast('修正しました'); closeModal($('mPhoto')); loadDetail(cur.id);
+  } catch(e){ toast('エラー: '+e.message,5000); }
+}
+async function removePhoto(){
+  if (!confirm('この写真を削除しますか？（ドライブではゴミ箱へ移動）')) return;
+  try { await run('deletePhoto', curPhoto.id); toast('削除しました'); closeModal($('mPhoto')); loadDetail(cur.id); }
+  catch(e){ toast('エラー: '+e.message,5000); }
+}
+</script>
+</body>
+</html>
